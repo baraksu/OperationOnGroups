@@ -1,16 +1,32 @@
+;ver 102
 .MODEL small
 .STACK 100h
-.DATA
+.DATA 
+
+logo db 13,10,   
+ db 13,10,"  ____                       _   _            "
+ db 13,10," / __ \                     | | (_)           "
+ db 13,10,"| |  | |_ __   ___ _ __ __ _| |_ _  ___  _ __ "
+ db 13,10,"| |  | | '_ \ / _ \ '__/ _` | __| |/ _ \| '_ \"
+ db 13,10,"| |__| | |_) |  __/ | | (_| | |_| | (_) | | | "
+ db 13,10," \____/| .__/ \___|_|  \__,_|\__|_|\___/|_| |_"
+ db 13,10,"       | |                                    "
+ db 13,10,"       |_|                                    $"
+
+
+
+
 msg1 db 13,10,'enter 10 numbers for group 1: $'  ;the user inserts the numbers for array1
 msg2 db 13,10,'enter 10 numbers for group 2: $'  ;the user inserts the numbers for array2
 msg3 db 13,10,'there are three options: ',13,10
      db       'a: to create a new array with the two arrays combined',13,10,
      db       'b: to create a new array with the numbers combined but if the number exits in both arrays the number will be only once in the new array',13,10
      db       'c: to create a new array with only the numbers that exist in both of the arrays',13,10
-     db       'press "a" for the first option, "b" for the second one and "c" for the third: $',13,10
+     db       'press "a" for the first option, "b" for the second one and "c" for the third, and press e for exit if you want:',13,10
+     db       '$'
 msg4 db 13,10,'you did not choose one of the optins,it is not proper,please try again$'  
 size dw 10                       ; the size of the arrays,used for loops mainly
-msg5 db 13,10,'this is not a digit please try again $'
+msg5 db 13,10,'this is not a digit please try again $' 
 array1 db 10 dup(0)              ;the first array,the user is putting the numbers inside it,the numbers moves to the new array                                                         
 array2 db 10 dup(0)              ;the second array the user is putting the numbers inside it,thet move to the new array,the first and second arrays is used to hold the numbers and go over them before the needed numbers move to the new array it is the purpose
 newarray db 20 dup(10)           ;the destination,the needed numbers move to this array it is printed in the end of the code.
@@ -20,7 +36,9 @@ newarray db 20 dup(10)           ;the destination,the needed numbers move to thi
 mov ax,@data
 mov ds,ax
 
-
+lea dx,logo
+mov ah,09h
+int 21h
 push offset newarray
 push offset array2
 push offset array1
@@ -36,7 +54,10 @@ mov ah,09h
 int 21h
 
 mov ah,01h
-int 21h
+int 21h 
+
+cmp al,'e'
+je exit
 
 cmp al,'a'
 je combined
@@ -78,7 +99,8 @@ call incommon
 jmp output
 
 output:
-call PrintingNewArray                
+call PrintingNewArray
+jmp afterinput                
 exit:
     mov ah, 4ch
     int 21h
@@ -214,7 +236,7 @@ jmp runonthearray
 equal:
 inc si
 xor di,di
-jmp newnumarraya 
+jmp newnumarraya                             
 
 correct:
 inc cx  
@@ -289,16 +311,25 @@ endp incommon     ;move to the new array only the numbers that exits in both of 
 ;---------------------------------------
 
 ;---------------------------------------
-proc PrintingNewArray       ;the offset of the third array,its capacity
+proc PrintingNewArray       ;the offset of the third array,its capacity 
+
 push bp
 mov bp,sp 
-xor di,di 
+xor di,di
+mov dl,' '
+mov ah,2
+int 21h
+
+mov dl,' '
+mov ah,2
+int 21h
+ 
 jmp printing
 
 nextnumber:
 inc di
-cmp di,20
-je done
+cmp di,19
+je lastnumber
 printing:
 mov bx,[bp+8]
 cmp [bx+di],10
@@ -306,11 +337,20 @@ je nextnumber
 mov dl,[bx+di]
 add dl,'0'
 mov ah,2
-int 21h
+int 21h 
+cmp [bx+di+1],10
+je done
 mov dl,','
 mov ah,2
 int 21h
 jmp nextnumber 
+
+lastnumber:
+mov dl,[bx+di]
+add dl,'0'
+mov ah,2
+int 21h
+jmp done
 
 
 done:
